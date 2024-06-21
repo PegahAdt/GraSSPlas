@@ -2,6 +2,14 @@
 
 This branch contains the instructions to generate the pseudolabels required for GraSSPlas.
 
+In order to generate plasmid pseudolabels, we obtain a dataset of 4 types of genes and proteins: replicon genes and origin of transfer genes and matepair formation proteins and mobility proteins. I mapped these proteins onto the short read contigs using BLAST using the gene/protein sequences as queries and the contigs as the references. An identity threshold of 0.8 has been used; so, there has to be at least 80% agreement between the query and reference sequences.  Additionally, to ensure that most of the query sequences (genes or proteins) have been matched to the references (contigs), I have used a coverage threshold of 0.8. 
+Note that the coverage threshold is currently hard-coded. But, I will be changing it to be a user-provided parameter​.
+
+Once all these mappings have been obtained, we look for the "hits". So, if any gene/protein has been mapped to a contig sequence, that contig is assigned the label plasmid. 
+
+For the chromosome pseudolabels, we look at the length of the contig and its read depth. If the length of the contig is at least the length threshold (200000 bp)  and its read depth is at most the (mean read depth + 2* standard deviation), then it is considered a chromosome.
+
+
 ## Installation & Dependencies
 
 The code was run on Python 3.11. We also require the pandas and Bio libraries for this code.
@@ -65,7 +73,6 @@ Here, `GFA_FILE` is the sample assembly GFA file. `PLSNESS_FOLDER` is the folder
 ```
 contig  chromosome  plasmid
 ```
-  
 
 
 

@@ -1,0 +1,3 @@
+short_read.fasta.gz: Contigs=327
+hybrid.fasta.gz: Contigs=5
+short_read.gfa.gz: Nodes=327, Edges=464

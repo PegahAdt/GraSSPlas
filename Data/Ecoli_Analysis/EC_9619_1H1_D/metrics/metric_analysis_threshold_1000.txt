@@ -1,0 +1,60 @@
+Tool: plasforest_pls
+Precision: 0.3333333333333333
+Recall: 0.7142857142857143
+F1 Score: 0.4545454545454545
+Confusion Matrix: TP=5, FP=10, FN=2, TN=142
+
+Tool: plasforest_pls_LengthWeighted
+Precision: 0.537020732351551
+Recall: 0.5700288241138799
+F1 Score: 0.5530326890956812
+Confusion Matrix: TP=57944, FP=49955, FN=43707, TN=4903044
+
+Tool: plasgraph2_pls
+Precision: 0.0625
+Recall: 0.2857142857142857
+F1 Score: 0.10256410256410256
+Confusion Matrix: TP=2, FP=30, FN=5, TN=122
+
+Tool: plasgraph2_pls_LengthWeighted
+Precision: 0.03643385759094511
+Recall: 0.03210986611051539
+F1 Score: 0.03413547516706931
+Confusion Matrix: TP=3264, FP=86323, FN=98387, TN=4866676
+
+Tool: platon_pls
+Precision: 1.0
+Recall: 0.42857142857142855
+F1 Score: 0.6
+Confusion Matrix: TP=3, FP=0, FN=4, TN=152
+
+Tool: platon_pls_LengthWeighted
+Precision: 1.0
+Recall: 0.9373739559866603
+F1 Score: 0.9676747775927205
+Confusion Matrix: TP=95285, FP=0, FN=6366, TN=4952999
+
+Tool: rfplasmid_pls
+Precision: 0.4
+Recall: 0.2857142857142857
+F1 Score: 0.3333333333333333
+Confusion Matrix: TP=2, FP=3, FN=5, TN=149
+
+Tool: rfplasmid_pls_LengthWeighted
+Precision: 0.6374272478916736
+Recall: 0.5279338127514732
+F1 Score: 0.5775367114899296
+Confusion Matrix: TP=53665, FP=30525, FN=47986, TN=4922474
+
+Tool: mlplasmid_pls
+Precision: 0.8333333333333334
+Recall: 0.7142857142857143
+F1 Score: 0.7692307692307692
+Confusion Matrix: TP=5, FP=1, FN=2, TN=151
+
+Tool: mlplasmid_pls_LengthWeighted
+Precision: 0.9275937856677955
+Recall: 0.9673982548130368
+F1 Score: 0.9470779721087912
+Confusion Matrix: TP=98337, FP=7676, FN=3314, TN=4945323
+

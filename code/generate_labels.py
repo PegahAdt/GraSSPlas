@@ -56,7 +56,7 @@ if os.path.exists(CTG_GFA):
     for ctg_id in ctg_dict:
         #gd_labels_dict[ctg_id] = {'chromosome': 0, 'plasmid': 0}
         plsness_labels_dict[ctg_id] = {'chromosome': 0, 'plasmid': 0}
-        if ctg_dict[ctg_id][len_key] >= 200000 and ctg_dict[ctg_id][cov_key] < (mean_cov + 2*stdev_cov):
+        if ctg_dict[ctg_id][len_key] >= CHR_LEN_THR and ctg_dict[ctg_id][cov_key] < (mean_cov + 2*stdev_cov):
             chr_set.add(ctg_id)
             #gd_labels_dict[ctg_id]['chromosome'] = 1
             plsness_labels_dict[ctg_id]['chromosome'] = 1
@@ -74,4 +74,4 @@ if os.path.exists(CTG_GFA):
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
     #gd_labels_df.to_csv(OUT_DIR+'/pseudolabels_by_gd.tsv', sep='\t')
-    plsness_labels_df.to_csv(OUT_DIR+'/pseudolabels.tsv', sep='\t')
+    plsness_labels_df.to_csv(OUT_DIR+'/pseudolabels_060.tsv', sep='\t')

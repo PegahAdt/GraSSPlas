@@ -2,8 +2,7 @@
 
 This branch contains the instructions to generate the pseudolabels required for GraSSPlas.
 
-In order to generate plasmid pseudolabels, we obtain a dataset of 4 types of genes and proteins: replicon genes and origin of transfer genes and matepair formation proteins and mobility proteins. I mapped these proteins onto the short read contigs using BLAST using the gene/protein sequences as queries and the contigs as the references. An identity threshold of 0.8 has been used; so, there has to be at least 80% agreement between the query and reference sequences.  Additionally, to ensure that most of the query sequences (genes or proteins) have been matched to the references (contigs), I have used a coverage threshold of 0.8. 
-Note that the coverage threshold is currently hard-coded. But, I will be changing it to be a user-provided parameter​.
+In order to generate plasmid pseudolabels, we obtain a dataset of 4 types of genes and proteins: replicon genes and origin of transfer genes and matepair formation proteins and mobility proteins. I mapped these proteins onto the short read contigs using BLAST using the gene/protein sequences as queries and the contigs as the references. An identity threshold of 0.8 has been used; so, there has to be at least 80% agreement between the query and reference sequences.  Additionally, to ensure that most of the query sequences (genes or proteins) have been matched to the references (contigs), I have used a coverage threshold of 0.6. 
 
 Once all these mappings have been obtained, we look for the "hits". So, if any gene/protein has been mapped to a contig sequence, that contig is assigned the label plasmid. 
 
@@ -73,6 +72,36 @@ Here, `GFA_FILE` is the sample assembly GFA file. `PLSNESS_FOLDER` is the folder
 ```
 contig  chromosome  plasmid
 ```
+
+## Details about the contigs
+
+The `Ecoli_contig_details.tsv` file contains the all the details of all contigs for 51 samples, with one row per contig. Here is the description of the individual columns in this file:
+1. contig (str): Contig name in the format Sample_Contig, 
+2. plasforest_pls (bin): Plasforest prediction if contig is plasmidic (1) or not (0), 
+3. plasforest_chr (bin): Plasforest prediction if contig is chromosomal (1) or not (0), 
+4. plasgraph2_pls (float): Plasgraph2 score if contig is plasmidic, 
+5. plasgraph2_chr (float): Plasgraph2 score if contig is chromosomal, 
+6. platon_pls (bin): Platon prediction if contig is plasmidic (1) or not (0), 
+7. platon_chr (bin): Platon prediction if contig is chromosomal (1) or not (0), 
+8. rfplasmid_pls (float): Rfplasmid score if contig is plasmidic, 
+9. rfplasmid_chr (float): Rfplasmid score if contig is chromosomal,
+10. mlplasmid_pls (float): Mlplasmid score if contig is plasmidic, 
+11. mlplasmid_chr (float): Mlplasmid score if contig is chromosomal,
+12. length (int): Length of contig,
+13. read_depth (float):	Read depth of contig as provided by Unicycler,
+14. gc_content (float): GC content of contig,
+15. matepair (float): Maximum coverage of known matepair formation proteins by contig,
+16. mobility (float): Maximum coverage of known mobility proteins by contig,
+17. origintransfer (float): Maximum coverage of known origin of transfer genes by contig,
+18. replicon (float): Maximum coverage of known replicon genes by contig,
+19. pseudolabel_chr (bin): Chromosome pseudolabel assigned to contig, based on length and assembly read depth,
+20. pseudolabel_pls (bin): Plasmid pseudolabel assigned to contig, based on maximum coverage threshold,
+21. pfamscore_chr (float): Chromosome Pfam score for contig,
+22. pfamscore_pls (float): Plasmid Pfam score for contig,
+23. pfamscore_chr (float): Chromosome Pfam label assigned to contig,
+24. pfamscore_pls (float): Plasmid Pfam label assigned to contig,
+25. chromosome (bin): Ground truth classification if contig is chromosomal (1) or not (0), 
+26. plasmid (bin): Ground truth classification if contig is plasmidic (1) or not (0). 
 
 
 

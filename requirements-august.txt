@@ -1,9 +1,0 @@
-# Historical version numbers without the Compute Canada wheel suffix.
-# Install a PyTorch 1.13.1 build for your platform before these dependencies.
-numpy==1.21.0
-pandas==1.2.4
-scipy==1.10.1
-scikit-learn==0.24.2
-torch-geometric==2.5.3
-# Used only by the locally recovered GFA filter.
-networkx==2.6.3

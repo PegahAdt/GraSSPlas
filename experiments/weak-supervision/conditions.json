@@ -1,0 +1,38 @@
+{
+  "mob": {
+    "label": "MOB",
+    "input_prefix": "mob",
+    "preparation_args": [],
+    "training_targets": "MOB-recon plasmid calls and strict Pfam chromosome calls"
+  },
+  "mob2": {
+    "label": "MOB2",
+    "input_prefix": "mob2",
+    "preparation_args": ["-c", "0.1"],
+    "training_targets": "MOB-recon plasmid calls and Pfam chromosome scores above 0.1"
+  },
+  "pfam": {
+    "label": "Pfam",
+    "input_prefix": "pfam",
+    "preparation_args": ["-p", "p"],
+    "training_targets": "Pfam chromosome and plasmid calls"
+  },
+  "feature_masking": {
+    "label": "Feature masking",
+    "input_prefix": "dropout",
+    "preparation_args": ["-d", "0.2"],
+    "training_targets": "MOB targets with default features substituted for a sample of labeled contigs"
+  },
+  "random": {
+    "label": "Random-label control",
+    "input_prefix": "random",
+    "preparation_args": ["-r", "0.1"],
+    "training_targets": "Random classes assigned to a sample of about 10% of contigs"
+  },
+  "true": {
+    "label": "True-label reference",
+    "input_prefix": "true",
+    "preparation_args": ["-R", "0.1"],
+    "training_targets": "Gold labels disclosed for a sample of about 10% of contigs"
+  }
+}

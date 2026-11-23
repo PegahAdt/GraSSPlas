@@ -1,0 +1,17 @@
+{
+  "repeated_fits": {
+    "nominal_seeds": [13, 20, 29, 37, 123],
+    "repeat_ids": [1, 2, 3, 4, 5],
+    "description": "Reference series with multiple nominal seeds"
+  },
+  "fixed_validation": {
+    "nominal_seeds": [123],
+    "repeat_ids": [6, 7, 8, 9, 10],
+    "description": "Validation split held fixed while other randomness was left active"
+  },
+  "fixed_validation_no_dropout": {
+    "nominal_seeds": [123],
+    "repeat_ids": [6, 7, 8, 9, 10],
+    "description": "Fixed validation split with network dropout layers disabled"
+  }
+}

@@ -23,7 +23,7 @@ The adaptation's feature assembly and label-generation script `process-files.pl`
 
 ## Dataset and training labels
 
-The study uses 51 *E. coli* isolates and predicts for 11,984 contigs per fit. The nine model inputs are scores from the same five classifier families as Experiment A, using only the plasmid score from mlplasmids. Training targets come from the condition tables. MOB-recon supplies plasmid matches and Pfam supplies evidence based on protein families. Reference labels used for evaluation are separate except where the true-label reference deliberately reuses them as training targets.
+The study uses 51 *E. coli* isolates and predicts for 11,984 contigs per fit. The nine model inputs are scores from the same five classifier families as Experiment A, using only the plasmid score from mlPlasmids. Training targets come from the condition tables. MOB-recon supplies plasmid matches and Pfam supplies evidence based on protein families. Reference labels used for evaluation are separate except where the true-label reference deliberately reuses them as training targets.
 
 The evaluator treats ambiguous reference contigs as positive for both plasmid and chromosome. It omits contigs with unknown reference status. This leaves 11,766 contigs at 100 bp and 4,348 at 1 kb. Among contigs shared with GraphSAGE, 116 called chromosome-only in this reference are plasmid-positive in the custom binary reference. The scores from the two model families use different evaluation definitions.
 
@@ -34,7 +34,7 @@ The evaluator treats ambiguous reference contigs as positive for both plasmid an
 | MOB | Use MOB-recon matches for plasmid labels and strict Pfam calls for chromosome labels. |
 | MOB2 | Keep the MOB plasmid criterion and flag chromosome when the Pfam chromosome score exceeds 0.1. This changes the training labels. The evaluation score cutoff stays at 0.5. |
 | Pfam | Use Pfam for both plasmid and chromosome labels. |
-| Feature masking | Keep MOB labels. For a random subset of pseudolabeled contigs the preparation selects with probability 0.2, replace classifier scores with defaults. The same modified table is used in training and prediction. |
+| Feature masking | Keep MOB labels. Replace classifier scores with defaults for pseudolabeled contigs selected with probability 0.2. The same modified table is used in training and prediction. |
 | Random-label control | Sample contigs with probability 0.1 and assign random plasmid or chromosome targets. |
 | True-label reference | Sample contigs with probability 0.1 and supply their reference labels when available. |
 
@@ -57,7 +57,7 @@ At 1 kb, MOB2 increased mean precision from **0.6039** to **0.9396** relative to
 
 ## Conclusions
 
-MOB2 had the best mean plasmid F1 of the automatic-label strategies at both cutoffs on this cohort. Its higher precision outweighed its lower recall relative to MOB. The true-label reference scored higher than MOB2 while having access to some of the labels used for evaluation. The results compare complete conditions on a shared cohort. They do not separate the effect of changing the chromosome cutoff from the effect of assigning more chromosome targets.
+MOB2 had the best mean plasmid F1 of the automatic-label strategies at both cutoffs on this cohort. Its higher precision outweighed its lower recall relative to MOB. The true-label reference scored higher than MOB2 while having access to some of the labels used for evaluation. The chromosome cutoff changed which contigs received a target and how many targets were available. The comparison cannot tell which of those changes drove the result.
 
 ## How to run or verify
 

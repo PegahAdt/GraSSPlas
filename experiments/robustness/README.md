@@ -12,7 +12,7 @@ A model can produce different predictions when fitted twice, even with the same 
 
 All three protocols use the same adapted plASgraph2 model family and six conditions as Experiment B. Network dropout concerns activations inside the model. Experiment B's feature masking alters the classifier scores supplied as input. The feature-masking condition is present in all three protocols.
 
-[`protocols.json`](protocols.json) describes the experimental groups and repeat IDs. [`scripts/results.py`](../../scripts/results.py) groups and summarizes the scores. [`scripts/plot_results.py`](../../scripts/plot_results.py) creates the variability figure. These analysis files do not implement the intervention changes. [Model and implementation for Experiment B](../weak-supervision/README.md#model-and-implementation)
+[`protocols.json`](protocols.json) describes the experimental groups and repeat IDs. [`scripts/results.py`](../../scripts/results.py) groups and summarizes the scores. The intervention changes require the external implementation. [Model and implementation for Experiment B](../weak-supervision/README.md#model-and-implementation)
 
 ## Dataset and training labels
 
@@ -30,17 +30,18 @@ The reference measurements are stored with [Experiment B's results](../weak-supe
 
 ## Results
 
-The figure compares the sample standard deviation of F1 across five fits per condition and protocol at each cutoff. The table gives both the mean and standard deviation for MOB2.
+Each cell is the sample standard deviation of plasmid F1 across five fits. A larger value means the scores varied more between runs. All fits in the table have both a run name and a saved configuration seed of 123.
 
-![Standard deviation of plasmid F1 by protocol for all six conditions at both minimum contig lengths](variability.png)
+| Condition | Reference ≥100 bp | Fixed validation ≥100 bp | Fixed validation, no dropout ≥100 bp | Reference ≥1 kb | Fixed validation ≥1 kb | Fixed validation, no dropout ≥1 kb |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| MOB | 0.0195 | 0.0520 | 0.0640 | 0.0139 | 0.0201 | 0.0285 |
+| MOB2 | 0.0372 | 0.0507 | 0.1464 | 0.0090 | 0.0185 | 0.0293 |
+| Pfam | 0.0362 | 0.0567 | 0.0568 | 0.0331 | 0.0597 | 0.0202 |
+| Feature masking | 0.0119 | 0.0234 | 0.0453 | 0.0219 | 0.0438 | 0.0652 |
+| Random-label control | 0.0170 | 0.0256 | 0.0221 | 0.0163 | 0.0186 | 0.0286 |
+| True-label reference | 0.0036 | 0.0106 | 0.0149 | 0.0068 | 0.0086 | 0.0139 |
 
-| MOB2 at seed 123 | Mean F1 ± SD ≥100 bp | Mean F1 ± SD ≥1 kb |
-| --- | ---: | ---: |
-| Reference | 0.6838 ± 0.0372 | 0.8462 ± 0.0090 |
-| Fixed validation | 0.7004 ± 0.0507 | 0.8484 ± 0.0185 |
-| Fixed validation with network dropout disabled | 0.6156 ± 0.1464 | 0.8539 ± 0.0293 |
-
-In the matched-seed comparison the fixed-validation group had higher variability than the reference in all six conditions at both cutoffs. For the group that also disabled dropout, only Pfam at 1 kb had lower variability than the reference. For MOB2 at 100 bp, the standard deviation increased from 0.0372 to 0.0507 to 0.1464 across the three protocols.
+In the matched-seed comparison the fixed-validation group had higher variability than the reference in all six conditions at both cutoffs. For the group that also disabled dropout, only Pfam at 1 kb had lower variability than the reference.
 
 ## Conclusions
 

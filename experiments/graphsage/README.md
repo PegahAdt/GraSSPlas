@@ -6,7 +6,7 @@ How well does the custom GraphSAGE pipeline classify plasmid contigs compared wi
 
 ## Plain-English explanation
 
-Only some contigs have training labels. The model learns from provisional labels on those contigs, while assembly links let it combine information from neighboring contigs. For example, a contig without a training label can still pass its five classifier pairs to a linked contig through the graph layer. It contributes no direct error term. After training, the model makes a plasmid-or-chromosome prediction for every contig, regardless of whether it had a training label.
+Only some contigs have training labels. The model learns from provisional labels on those contigs, while assembly links let it combine information from neighboring contigs. For example, a contig without a training label can still pass its five classifier pairs to a linked contig through the graph layer. It contributes no direct error term. The model learns through classification targets assigned by biological rules. It uses no separate self-supervised task such as predicting hidden input features. After training, the model makes a plasmid-or-chromosome prediction for every contig, regardless of whether it had a training label.
 
 ## Model and implementation
 
@@ -24,7 +24,7 @@ The [driver](src/mainPlasDetection.py) wires these steps together. The [model an
 
 ## Dataset and training labels
 
-The [ordered manifest](samples.csv) covers 52 PLASEVAL *E. coli* assemblies and 12,176 contigs. Short contigs were contracted during graph preparation, connecting neighboring ends before removing a short node. The model loader keeps contigs of at least 100 bp and prefixes IDs with the manifest row number. Assemblies remain disconnected from each other. Each node has ten input scores, two each from PlasForest, plASgraph2, Platon, RFPlasmid and mlplasmids. Length is used for filtering and evaluation. Read depth and GC content are loaded but excluded from model features. [PLASEVAL](https://doi.org/10.1186/s12859-024-05941-0)
+The [ordered manifest](samples.csv) covers 52 PLASEVAL *E. coli* assemblies and 12,176 contigs. Short contigs were contracted during graph preparation, connecting neighboring ends before removing a short node. The model loader keeps contigs of at least 100 bp and prefixes IDs with the manifest row number. Assemblies remain disconnected from each other. Each node has ten input scores, two each from PlasForest, plASgraph2, Platon, RFPlasmid and mlPlasmids. Length is used for filtering and evaluation. Read depth and GC content are loaded but excluded from model features. [PLASEVAL](https://doi.org/10.1186/s12859-024-05941-0)
 
 The experiment consumes precomputed `_060` pseudolabel tables. The public generator sets a plasmid flag for matches in the marker mapping files. It sets a chromosome flag when a contig meets a minimum length and its read depth is below the assembly mean plus twice the standard deviation. The actual loss uses **250 plasmid-only and 843 chromosome-only contigs**. The full graph includes **11,075 contigs with neither flag and eight with both flags**. The model's training targets come from these flags. The evaluation label is positive if the contig is in the separate reference plasmid list and negative otherwise. [Public label generator](https://github.com/PegahAdt/GraSSPlas/blob/0c9af7c11ab54eab1a36ed39d9ff3b04b17c40d6/code/generate_labels.py)
 
@@ -45,9 +45,9 @@ GraphSAGE ranges show the minimum and maximum of each metric across the five sav
 | plASgraph2 | 0.3830 | 0.5597 | 0.4548 | 0.4941 | 0.4812 | 0.4876 |
 | Platon | 0.9705 | 0.2554 | 0.4043 | 0.9705 | 0.7005 | 0.8137 |
 | RFPlasmid | 0.8241 | 0.3300 | 0.4712 | 0.8357 | 0.7741 | 0.8037 |
-| mlplasmids | 0.7883 | 0.2243 | 0.3493 | 0.7883 | 0.6154 | 0.6912 |
+| mlPlasmids | 0.7883 | 0.2243 | 0.3493 | 0.7883 | 0.6154 | 0.6912 |
 
-At 1 kb, the best-F1 GraphSAGE fit detected 571 reference plasmid contigs, missed 40 and made 700 false-positive calls. It had 3,129 true negatives across the 4,440-contig subset. Platon detected 428 and made 13 false-positive calls on that same subset. [Per-run results](results.csv) · [F1 comparison](comparison.png)
+At 1 kb, the best-F1 GraphSAGE fit detected 571 reference plasmid contigs, missed 40 and made 700 false-positive calls. It had 3,129 true negatives across the 4,440-contig subset. Platon detected 428 and made 13 false-positive calls on that same subset. [Per-run results](results.csv)
 
 ## Conclusions
 
@@ -55,7 +55,7 @@ GraphSAGE found more reference plasmid contigs than Platon at 1 kb, while its ex
 
 ## How to run or verify
 
-Install the [GraphSAGE environment](../../README.md#install-and-verify). Run from the repository root.
+Install the [GraphSAGE environment](../../README.md#installation-and-reproducibility). Run from the repository root.
 
 ```sh
 git fetch origin

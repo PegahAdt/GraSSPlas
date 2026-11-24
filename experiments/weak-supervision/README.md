@@ -19,7 +19,7 @@ The adapted model uses the TensorFlow/Spektral **plASgraph2** architecture. Its 
 | [`run.py`](run.py) | Passes prepared tables to an external trainer, classifier and evaluator. |
 | [`scripts/results.py`](../../scripts/results.py) | Scores supplied predictions independently and summarizes the committed metrics. |
 
-The adaptation's feature assembly and label-generation script `process-files.pl`, graph builder, TensorFlow model, trainer and classifier require an authorized external checkout. The JSON and launcher do not implement those steps. The public upstream release explains the base model. Support for the adaptation's external-feature and pseudolabel arguments must be checked in the authorized checkout.
+The graph convolutions and TensorFlow/Spektral model are inherited from plASgraph2. The study uses the laboratory adaptation for joining classifier features and training labels to graph nodes, training, classification and evaluation. Its `exp/grassplas/process-files.pl` is specific to this study and prepares the condition tables. The public plASgraph2 release lacks the required training and classification options and the compatible evaluator. The launcher here requires the laboratory adaptation.
 
 ## Dataset and training labels
 
@@ -61,19 +61,61 @@ MOB2 had the best mean plasmid F1 of the automatic-label strategies at both cuto
 
 ## How to run or verify
 
-From the repository root, use Python to reproduce the summary. With access to score and reference files, independently score each prediction vector.
+### Compatible implementation
+
+With project access on Fir, use the laboratory's `plasgraph2-working` checkout. Otherwise, request checkout and input-table access from the laboratory maintainers. The compatible Fir checkout is based on `3d35f0074e66f3382fbef79a14cc24db479d03e4` and has local edits in `src/architecture.py` and `src/plASgraph2_train.py`. This identifies the compatible interface. Exact source states for the historical fits remain uncertain. No public redistribution grant for the laboratory adaptation was established.
+
+Use a checkout whose `src/plASgraph2_train.py` accepts `-f` for external features and `-G` for training targets, whose `src/plASgraph2_classify.py set` accepts `-f`, and whose `src/eval.py` supports `-m`, `-o` and `-n`. Keep the rest of the adapter's `src/` alongside these entry points for their imports.
+
+Use the adapter's pinned `requirements.txt` in a separate Python 3.10 environment. It specifies TensorFlow 2.8.0, Spektral 1.1.0, NumPy 1.22.2, pandas 1.4.1, scikit-learn 1.0.2, SciPy 1.8.0, NetworkX 2.8.3, Biopython 1.79, Matplotlib 3.5.1, protobuf 3.19.4 and PyYAML 6.0.
+
+```sh
+PLASGRAPH2_ADAPTER=/path/to/authorized/plasgraph2-working
+PLASGRAPH2_INPUTS="$PLASGRAPH2_ADAPTER/exp/grassplas"
+mkdir -p work
+python3.10 -m venv work/plasgraph2-env
+. work/plasgraph2-env/bin/activate
+python -m pip install -r "$PLASGRAPH2_ADAPTER/requirements.txt"
+```
+
+### Prepared inputs
+
+The `pseudolabels` branch at `0c9af7c11ab54eab1a36ed39d9ff3b04b17c40d6` provides the 51 compressed graphs as `data/Ecoli_AssemblyGraph/<Assembly_Name>/short_read.gfa.gz`, the prepared contig score and label source table `data/Ecoli_contig_details.tsv`, and the sample mapping `data/EColi_unambiguous.tsv`. [Pinned public inputs](https://github.com/PegahAdt/GraSSPlas/tree/0c9af7c11ab54eab1a36ed39d9ff3b04b17c40d6/data)
+
+| Input | Expected format |
+| --- | --- |
+| Cohort manifest | `sets/plaseval-nolabels.csv` in the adapter checkout. A headerless CSV of `relative_gfa,,sample_id`. Graph paths are relative to the adapter's `data/`. The middle field is empty because `-G` supplies a common training-target table. |
+| Assembly graphs | The original manifest points to `data/plaseval/ecol-<BioSample>/plaseval-short.gfa.gz`. To stage a public copy, use `Assembly_Name` and `NCBI BioSample` from the sample mapping and place each `short_read.gfa.gz` at its manifest path. Sample IDs are `ecol-<BioSample>`. |
+| Feature CSV | `<prefix>-extfeatures.csv` with `sample,contig` followed by the nine numeric score columns in [`model.yaml`](model.yaml). |
+| Training targets | `<prefix>-pseudolabels.csv` with `sample,contig,length,label`. Length is in base pairs. Labels are `plasmid`, `chromosome`, `ambiguous` or `unlabeled`. |
+| Evaluation reference | `mob-ground-truth.csv`, with the same columns and label vocabulary as the target table. This reference is shared across all conditions. |
+
+Use consistent `sample,contig` identifiers across the graph and the three tables. The launcher takes a condition name and finds its matching file pair in `PLASGRAPH2_INPUTS`.
+
+| Launcher condition | File prefix | Prepared inputs |
+| --- | --- | --- |
+| `mob` | `mob` | Saved tables or deterministic preparation |
+| `mob2` | `mob2` | Saved tables or deterministic preparation |
+| `pfam` | `pfam` | Saved tables or deterministic preparation |
+| `feature_masking` | `dropout` | Saved feature and target tables preserve the original masking draw |
+| `random` | `random` | Saved feature and target tables preserve the original random labels |
+| `true` | `true` | Saved feature and target tables preserve the original sampled true labels |
+
+The authorized checkout's `exp/grassplas/` contains the saved condition tables. Use them directly when available. If only the public source tables are available, the authorized `process-files.pl` can regenerate the MOB, MOB2 and Pfam tables. In a scratch directory, save `Ecoli_contig_details.tsv` as `plaseval-contigs.tsv` and `EColi_unambiguous.tsv` as `plaseval-sample-overview.tsv`. Run the Perl script from that directory with `mob`, `-c 0.1 mob2` and `-p p pfam` respectively. The MOB invocation also writes the common reference. Re-running the randomized conditions with the arguments in [`conditions.json`](conditions.json) makes new draws.
+
+### Train or score
+
+From the repository root, supply the authorized adapter, prepared input directory and a new output directory. The example uses [`model.yaml`](model.yaml). Pass `--config /path/to/model.yaml` to choose a different settings file. A successful run writes the model, `predictions.csv`, training logs and both threshold metric files. Graph path resolution has been checked for all 51 entries for both launcher calls. Full training through this launcher remains unverified.
+
+```sh
+python experiments/weak-supervision/run.py "$PLASGRAPH2_ADAPTER" "$PLASGRAPH2_INPUTS" mob2 work/mob2
+```
+
+The summary and independent scoring commands use Python's standard library. To score an existing prediction CSV, provide `sample,contig,plasmid_score,chrom_score` columns and the common reference. The adapter also writes `length` and `label` in its predictions. Scoring joins by sample and contig, uses the reference lengths, and reports metrics at 100 bp and 1 kb.
 
 ```sh
 python scripts/results.py summary weak-supervision
-python scripts/results.py score-plasgraph /path/to/gold.csv /path/to/predictions.csv
-```
-
-Training requires an authorized adaptation checkout, its `sets/plaseval-nolabels.csv`, assembly graphs, and prepared feature, pseudolabel and reference tables. The study used TensorFlow 2.8.0, Spektral 1.1.0, NumPy 1.22.2, pandas 1.4.1 and scikit-learn 1.0.2. Follow the adaptation's dependency file in a separate environment.
-
-In the adaptation, `process-files.pl` builds the condition tables with the arguments in [`conditions.json`](conditions.json). Supply the resulting `<prefix>-extfeatures.csv`, `<prefix>-pseudolabels.csv` and `mob-ground-truth.csv` in the input directory. For example, the command below calls the adaptation's trainer and classifier once with the included example settings, then writes threshold metrics.
-
-```sh
-python experiments/weak-supervision/run.py /path/to/adaptation /path/to/inputs mob2 work/mob2
+python scripts/results.py score-plasgraph "$PLASGRAPH2_INPUTS/mob-ground-truth.csv" /path/to/predictions.csv
 ```
 
 ## Limitations

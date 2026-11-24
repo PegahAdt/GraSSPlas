@@ -56,7 +56,7 @@ python scripts/results.py summary robustness
 python scripts/results.py summary robustness --by-seed configured_seed
 ```
 
-If the original prediction and reference files are available, the same independent scoring command used for Experiment B applies here. These commands reproduce the analysis. Replaying an intervention requires its exact model and training code, in addition to the [external adaptation and input tables](../weak-supervision/README.md#how-to-run-or-verify).
+If the original prediction and reference files are available, the same independent scoring command used for Experiment B applies here. These commands reproduce the analysis. Exact retraining is unavailable because the source revision and per-intervention edits cannot be established. The [Experiment B launcher and prepared input tables](../weak-supervision/README.md#how-to-run-or-verify) support a condition run with the accessible adapter. The diagnostic interventions require their original model and training code.
 
 ## Limitations
 

@@ -66,13 +66,14 @@ bash experiments/graphsage/run.sh work/graphsage-inputs/manifest.csv work/graphs
 
 [`prepare_inputs.py`](prepare_inputs.py) builds a local manifest from pinned public graph, feature and pseudolabel files on `pseudolabels` and reference files on `data`. [`inspect_inputs.py`](inspect_inputs.py) checks the feature and label ID order and reports the graph and training-set sizes. For a local copy of the data, pass `--data-root /path/to/data` to the preparer. [`run.sh`](run.sh) launches the original driver. The launcher writes `features.csv`, `labels.csv`, `ground_truth.csv`, `y_final.csv` and three threshold reports. Use a separate output directory for each invocation.
 
+The [five original prediction vectors](results/) store one binary `y_final` column per invocation in the original row order. Each can be scored using a single shared pair of score and reference tables. After preparing the pinned public inputs above, export those tables and recount the metrics without fitting a model.
+
 ```sh
-python scripts/results.py validate
-# With access to the five saved exports under results_1 through results_5
-python scripts/results.py validate --graphsage-exports /path/to/graphsage-exports
+python experiments/graphsage/inspect_inputs.py work/graphsage-inputs/manifest.csv --export-evaluation work/graphsage-evaluation
+python scripts/results.py validate --graphsage-evaluation work/graphsage-evaluation
 ```
 
-The first command checks the included table. The second recomputes its GraphSAGE confusion counts from the supplied exports. The training command above runs the full configured fit sequence. The synthetic smoke test in the root README is the lightweight execution check.
+The recount matches confusion counts, precision, recall and F1 for all five invocations and all cutoffs against [the results table](results.csv). For positional alignment, use the pinned inputs and the original manifest order. If you already have complete saved exports in directories named `results_1` through `results_5`, use `python scripts/results.py validate --graphsage-exports /path/to/graphsage-exports`. The training command above runs the full configured fit sequence. The synthetic smoke test in the root README is the lightweight execution check.
 
 ## Limitations
 

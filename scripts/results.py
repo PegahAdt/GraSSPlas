@@ -30,10 +30,11 @@ def ratios(tp, fp, fn):
     return divide(tp, tp + fp), divide(tp, tp + fn), divide(2 * tp, 2 * tp + fp + fn)
 
 
-def recount(directory):
+def recount(directory, predictions_path=None):
     counts = Counter()
-    features, gold, predictions = [rows(directory / name) for name in
-                                    ("features.csv", "ground_truth.csv", "y_final.csv")]
+    features = rows(directory / "features.csv")
+    gold = rows(directory / "ground_truth.csv")
+    predictions = rows(predictions_path or directory / "y_final.csv")
     for feature, label, pred in zip_longest(features, gold, predictions):
         require(None not in (feature, label, pred), "Unequal table lengths")
         require(feature["contig"] == label["contig"], "Contig order differs")
@@ -55,7 +56,7 @@ def experiment_rows(name):
     return rows(EXPERIMENTS / name / "results.csv")
 
 
-def validate(graphsage_exports=None):
+def validate(graphsage_exports=None, graphsage_evaluation=None):
     graph = experiment_rows("graphsage")
     expected = {(str(i), str(c), m) for i in range(1, 6) for c in (0, 100, 1000)
                 for m in (*BASELINES, "GrassPlas", "intersection", "union")}
@@ -63,7 +64,11 @@ def validate(graphsage_exports=None):
             {(r["run"], r["threshold"], r["tool"]) for r in graph} == expected,
             "Incomplete GraphSAGE metrics")
     observed = {}
-    if graphsage_exports:
+    if graphsage_evaluation is not None:
+        predictions = EXPERIMENTS / "graphsage/results"
+        observed = {str(i): recount(graphsage_evaluation, predictions / f"run_{i}.csv")
+                    for i in range(1, 6)}
+    elif graphsage_exports is not None:
         observed = {str(i): recount(graphsage_exports / f"results_{i}") for i in range(1, 6)}
     for r in graph:
         tp, fp, fn, tn = (int(r[k]) for k in ("TP", "FP", "FN", "TN"))
@@ -185,7 +190,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     actions = parser.add_subparsers(dest="action", required=True)
     check = actions.add_parser("validate")
-    check.add_argument("--graphsage-exports", type=Path)
+    inputs = check.add_mutually_exclusive_group()
+    inputs.add_argument("--graphsage-exports", type=Path,
+                        help="Recount the original complete exports under results_1 through results_5")
+    inputs.add_argument("--graphsage-evaluation", type=Path,
+                        help="Recount the included predictions using score and reference tables")
     summary = actions.add_parser("summary")
     summary.add_argument("experiment", choices=["weak-supervision", "robustness"])
     summary.add_argument("--by-seed", choices=["nominal_seed", "configured_seed"])
@@ -194,8 +203,10 @@ if __name__ == "__main__":
     score.add_argument("predictions", type=Path)
     args = parser.parse_args()
     if args.action == "validate":
-        validate(args.graphsage_exports)
+        validate(args.graphsage_exports, args.graphsage_evaluation)
         print("Validated 120 GraphSAGE rows, 840 plASgraph2 fit rows and 46 comparison rows.")
+        if args.graphsage_exports or args.graphsage_evaluation:
+            print("Recomputed confusion counts for all 120 GraphSAGE rows from prediction inputs.")
     elif args.action == "summary":
         summarize(args.experiment, sys.stdout, args.by_seed)
     else:

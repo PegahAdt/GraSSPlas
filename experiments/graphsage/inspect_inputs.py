@@ -11,7 +11,7 @@ sys.path.insert(0, str(EXPERIMENT / "src"))
 from toolsDetection import get_yinitial, process_files
 
 
-def inspect(manifest, saved):
+def inspect(manifest, saved, evaluation=None):
     edges, features, labels, _, gold = process_files(str(manifest), 100)
     if not features.contig.is_unique or not features.contig.equals(labels.contig):
         raise ValueError("Feature and label IDs differ or their row orders disagree")
@@ -20,6 +20,12 @@ def inspect(manifest, saved):
             historical = pd.read_csv(saved / (name + ".csv"))
             pd.testing.assert_frame_equal(table.reset_index(drop=True), historical,
                                           check_dtype=False, rtol=1e-12, atol=1e-12)
+    if evaluation is not None:
+        if not features.contig.equals(gold.contig):
+            raise ValueError("Feature and reference ID order differs")
+        evaluation.mkdir(parents=True)
+        features.to_csv(evaluation / "features.csv", index=False)
+        gold.to_csv(evaluation / "ground_truth.csv", index=False)
     pairs = set(edges)
     return dict(contigs=len(features), directed_entries=len(edges),
                 self_loops=sum(u == v for u, v in pairs),
@@ -31,5 +37,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--saved-run", type=Path)
+    parser.add_argument("--export-evaluation", type=Path, metavar="DIRECTORY",
+                        help="Write the ordered score and reference tables to a new directory")
     args = parser.parse_args()
-    print(json.dumps(inspect(args.manifest, args.saved_run), indent=2))
+    print(json.dumps(inspect(args.manifest, args.saved_run, args.export_evaluation), indent=2))

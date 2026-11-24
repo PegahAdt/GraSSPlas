@@ -1,4 +1,4 @@
-"""Prepare the GraphSAGE manifest from pinned public inputs or a local data root."""
+"""Prepare the GraSSPlas manifest from pinned public inputs or a local data root."""
 import argparse
 import csv
 from pathlib import Path

@@ -2,7 +2,7 @@
 
 ## Project overview
 
-GraSSPlas studies whether a machine-learning model can identify plasmid DNA by combining existing classifier scores with assembly connections. The study also tests how training labels and repeated fits affect the results.
+**GraSSPlas** is the proposed classifier for identifying plasmid DNA from existing classifier scores and assembly connections. Two experiments with an adapted plASgraph2 model separately test how training labels and repeated fits affect the results.
 
 ## Background on plasmid classification
 
@@ -14,43 +14,43 @@ Sequencers read DNA in short pieces. Assembly software joins them into longer st
 
 Classifiers can disagree because they use different evidence or decision rules. A short fragment may offer few clues. Linked contigs may come from the same molecule, so evidence for one could help classify the other. The study tests whether a model can use these clues together.
 
-The study starts with a custom classifier, then uses an established graph model to compare training inputs and check how much its scores vary between runs.
+The study first evaluates GraSSPlas, then uses adapted plASgraph2 to compare training inputs and check how much its scores vary between runs.
 
 ## Proposed semi-supervised learning approach
 
 1. **Start with bacterial assemblies.** PLASEVAL provides *E. coli* samples with assembled contigs and their connection records.
-2. **Represent the assemblies as graphs.** Contigs are nodes and assembly connections are edges. The custom model uses graphs prepared with a 100 base-pair minimum.
-3. **Collect scores from existing classifiers.** The five tools are **PlasForest, Platon, RFPlasmid, plASgraph2, and mlPlasmids**. Each supplies a plasmid and a chromosome score, giving GraphSAGE ten input features per contig.
-4. **Choose provisional training labels.** A **pseudolabel** is a provisional label assigned by a rule. Matches to known plasmid-associated sequences give plasmid flags. Chromosome flags require a minimum length and sequencing depth below a cutoff. Depth measures how many reads cover a fragment. The cutoff is the assembly mean plus twice a measure of spread called the standard deviation. The model trains on contigs with exactly one flag. A separate set of reference labels is used for evaluation. [Labeling rules and source code](experiments/graphsage/README.md#dataset-and-training-labels)
-5. **Learn and predict with GraphSAGE.** The graph neural network combines a contig's scores with scores from its linked neighbors. It processes the full graph, but the training loss measures errors only on the **1,093 of 12,176 contigs** with selected pseudolabels. Contigs with neither or both flags remain available as neighbors. This use of a partly labeled graph is semi-supervised learning. The trained model predicts plasmid or chromosome for every contig.
-6. **Compare predictions with the reference.** **Precision** is the fraction of plasmid calls that were correct. **Recall** is the fraction of reference plasmid contigs that were found. **F1** combines the two and is high when both are high. The study scores GraphSAGE and the five individual tools on the same contigs. Scoring at both 100 base pairs (**bp**) and 1,000 base pairs (**1 kb**) shows how excluding shorter fragments changes the comparison.
+2. **Represent the assemblies as graphs.** Contigs are nodes and assembly connections are edges. GraSSPlas uses graphs prepared with a 100 base-pair minimum.
+3. **Collect scores from existing classifiers.** The five tools are **PlasForest, Platon, RFPlasmid, plASgraph2, and mlPlasmids**. Each supplies a plasmid and a chromosome score, giving GraSSPlas ten input features per contig.
+4. **Choose provisional training labels.** A **pseudolabel** is a provisional label assigned by a rule. Matches to known plasmid-associated sequences give plasmid flags. Chromosome flags require a minimum length and sequencing depth below a cutoff. Depth measures how many reads cover a fragment. The cutoff is the assembly mean plus twice a measure of spread called the standard deviation. The model trains on contigs with exactly one flag. A separate set of reference labels is used for evaluation. [Labeling rules and source code](experiments/grassplas/README.md#dataset-and-training-labels)
+5. **Train GraSSPlas and classify each contig.** GraSSPlas uses the GraphSAGE neural network architecture to combine a contig's scores with scores from its linked neighbors. It processes the full graph, but the training loss measures errors only on the **1,093 of 12,176 contigs** with selected pseudolabels. Contigs with neither or both flags remain available as neighbors. This use of a partly labeled graph is semi-supervised learning. The trained model predicts plasmid or chromosome for every contig.
+6. **Compare predictions with the reference.** **Precision** is the fraction of plasmid calls that were correct. **Recall** is the fraction of reference plasmid contigs that were found. **F1** combines the two and is high when both are high. The study scores GraSSPlas and the five individual tools on the same contigs. Scoring at both 100 base pairs (**bp**) and 1,000 base pairs (**1 kb**) shows how excluding shorter fragments changes the comparison.
 
 ## Dataset and experimental setup
 
-The custom **GraphSAGE** experiment uses 52 assemblies and treats a contig as plasmid-positive if it appears on the reference plasmid list. The other experiments use **adapted plASgraph2**, an existing graph model extended to accept additional classifier scores and alternative training labels. It uses 51 bacterial samples and gives separate plasmid and chromosome scores. Its reference allows both labels.
+The **GraSSPlas** experiment uses 52 assemblies and treats a contig as plasmid-positive if it appears on the reference plasmid list. Experiments B and C use **adapted plASgraph2**, an existing graph model extended to accept additional classifier scores and alternative training labels. It uses 51 bacterial samples and gives separate plasmid and chromosome scores. Its reference allows both labels.
 
 Each model family is evaluated on its own cohort. The 1 kb cutoff scores a subset of existing predictions.
 
 ## Experiments and results
 
-### A. GraphSAGE classification
+### A. GraSSPlas — Semi-Supervised Plasmid Classification
 
 **Question.** How well can a model combine the five classifiers' scores, assembly links, and a small set of training labels to classify plasmid contigs?
 
-At each cutoff, the methods use the same contigs and reference labels. The GraphSAGE ranges cover five saved predictions.
+At each cutoff, the methods use the same contigs and reference labels. The GraSSPlas ranges cover five saved prediction sets.
 
 | Method | Plasmid F1 at ≥100 bp | Plasmid F1 at ≥1 kb |
 | --- | ---: | ---: |
-| GraphSAGE | 0.3353–0.4640 | 0.5624–0.6068 |
+| GraSSPlas | 0.3353–0.4640 | 0.5624–0.6068 |
 | PlasForest | **0.6001** | 0.7146 |
 | Platon | 0.4043 | **0.8137** |
 | RFPlasmid | 0.4712 | 0.8037 |
 | plASgraph2 | 0.4548 | 0.4876 |
 | mlPlasmids | 0.3493 | 0.6912 |
 
-At 1 kb, the best-F1 GraphSAGE fit found 571 reference plasmid contigs and made 700 false-positive calls. Platon found 428 and made 13 false-positive calls. GraphSAGE found more plasmid contigs, but at a cost in precision and F1.
+At 1 kb, the best-F1 GraSSPlas fit found 571 reference plasmid contigs and made 700 false-positive calls. Platon found 428 and made 13 false-positive calls. GraSSPlas found more plasmid contigs, but at a cost in precision and F1.
 
-**Conclusion.** The strongest baseline achieved higher F1 at both cutoffs. The comparison shows where the custom pipeline could improve by making fewer false-positive calls. A matched run with the edges removed would be needed to measure what the connections contribute. [Full precision, recall, and F1 results](experiments/graphsage/README.md#results)
+**Conclusion.** The strongest baseline achieved higher F1 than GraSSPlas at both cutoffs. The comparison shows where GraSSPlas could improve by making fewer false-positive calls. A matched run with the edges removed would be needed to measure what the connections contribute. [Full precision, recall, and F1 results](experiments/grassplas/README.md#results)
 
 ### B. Pseudolabel and feature-input strategies
 
@@ -89,7 +89,7 @@ The study compared a reference series with two interventions. The first was mean
 
 ## Overall findings
 
-On these assemblies, more plasmid calls did not necessarily mean better classification. The plASgraph2 comparisons show that training labels can shift the balance between missed contigs and false positives. Repeat runs show how much that balance can vary under the same condition.
+GraSSPlas found many reference plasmid contigs, with false positives limiting its precision. The adapted plASgraph2 comparisons show that training labels can shift the balance between missed contigs and false positives. Repeat runs show how much that balance can vary under the same condition.
 
 ## Installation and reproducibility
 
@@ -101,21 +101,21 @@ python3 scripts/results.py summary weak-supervision
 python3 scripts/results.py summary robustness
 ```
 
-For the custom model, create a Python 3.8 environment and install PyTorch and the experiment dependencies. The following is a Linux x86-64 CPU example. The smoke test runs one training epoch on a small synthetic graph.
+For GraSSPlas, create a Python 3.8 environment and install PyTorch and the experiment dependencies. The following is a Linux x86-64 CPU example. The smoke test runs one training epoch on a small synthetic graph.
 
 ```sh
 python3.8 -m venv .venv
 source .venv/bin/activate
 python -m pip install 'torch==1.13.1+cpu' --extra-index-url https://download.pytorch.org/whl/cpu
-python -m pip install -r experiments/graphsage/requirements.txt
-python tests/smoke_graphsage.py
+python -m pip install -r experiments/grassplas/requirements.txt
+python tests/smoke_grassplas.py
 ```
 
-The GraphSAGE guide covers public data preparation and full training. The plASgraph2 guide explains which external code and prepared tables are required for training and how to verify predictions independently. [GraphSAGE instructions](experiments/graphsage/README.md#how-to-run-or-verify) · [plASgraph2 instructions](experiments/weak-supervision/README.md#how-to-run-or-verify) · [Repeatability analysis](experiments/robustness/README.md#how-to-run-or-verify)
+The GraSSPlas guide covers public data preparation and full training. The plASgraph2 guide explains which external code and prepared tables are required for training and how to verify predictions independently. [GraSSPlas instructions](experiments/grassplas/README.md#how-to-run-or-verify) · [plASgraph2 instructions](experiments/weak-supervision/README.md#how-to-run-or-verify) · [Repeatability analysis](experiments/robustness/README.md#how-to-run-or-verify)
 
 ## Repository organization
 
-- [GraphSAGE experiment](experiments/graphsage/) contains the custom model, input manifest, launcher, and baseline results.
+- [GraSSPlas experiment](experiments/grassplas/) contains the model, input manifest, launcher, and baseline results.
 - [Pseudolabel and feature-input experiment](experiments/weak-supervision/) contains the plASgraph2 condition settings, external launcher, and results.
 - [Repeatability experiment](experiments/robustness/) contains the comparison protocols and intervention results.
 - [Scoring and validation](scripts/results.py) and [tests](tests/) provide shared checks.

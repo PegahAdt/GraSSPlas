@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu
 if [ "$#" -lt 2 ]; then
-    echo "Usage: bash experiments/graphsage/run.sh MANIFEST NEW_OUTPUT_DIRECTORY [MODEL_FLAGS...]" >&2
+    echo "Usage: bash experiments/grassplas/run.sh MANIFEST NEW_OUTPUT_DIRECTORY [MODEL_FLAGS...]" >&2
     exit 2
 fi
 root=$(cd "$(dirname "$0")" && pwd)

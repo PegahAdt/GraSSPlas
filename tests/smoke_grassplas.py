@@ -1,4 +1,4 @@
-"""Exercise the exact driver's graph, loss and export paths with synthetic inputs on CPU."""
+"""Exercise the GraSSPlas driver's graph, loss and export paths with synthetic inputs on CPU."""
 import csv
 import os
 from pathlib import Path
@@ -26,7 +26,7 @@ with tempfile.TemporaryDirectory() as tmp:
         w.writerow(["sample", "gfa_path", "features_path", "labels_path", "ground_truth"])
         w.writerow(["toy", *(d / x for x in ("graph.gfa", "features.tsv", "labels.tsv", "gold.tsv"))])
     output = d / "output"
-    subprocess.run(["bash", str(ROOT / "experiments/graphsage/run.sh"), str(manifest), str(output),
+    subprocess.run(["bash", str(ROOT / "experiments/grassplas/run.sh"), str(manifest), str(output),
                     "--N_iter", "1", "--noGNN", "1"],
                    env=dict(os.environ, PYTHON=sys.executable, CUDA_VISIBLE_DEVICES="", OMP_NUM_THREADS="1"),
                    check=True, cwd=d)
@@ -34,4 +34,4 @@ with tempfile.TemporaryDirectory() as tmp:
         preds = list(csv.DictReader(f))
     assert len(preds) == 4 and all(r["y_final"] in {"0", "1"} for r in preds)
     assert all((output / f"metrics_threshold_{t}.txt").is_file() for t in (0,100,1000))
-    print("Synthetic GraphSAGE driver passed.")
+    print("Synthetic GraSSPlas driver passed.")

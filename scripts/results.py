@@ -12,6 +12,7 @@ from statistics import mean, stdev
 ROOT = Path(__file__).resolve().parents[1]
 EXPERIMENTS = ROOT / "experiments"
 BASELINES = ("plasforest_pls", "plasgraph2_pls", "platon_pls", "rfplasmid_pls", "mlplasmid_pls")
+GRASSPLAS = "GraSSPlas"
 
 
 def rows(path):
@@ -39,8 +40,8 @@ def recount(directory, predictions_path=None):
         require(None not in (feature, label, pred), "Unequal table lengths")
         require(feature["contig"] == label["contig"], "Contig order differs")
         predicted = {name: float(feature[name]) > 0.5 for name in BASELINES}
-        predicted["GrassPlas"] = int(pred["y_final"])
-        require(predicted["GrassPlas"] in (0, 1), "Nonbinary prediction")
+        predicted[GRASSPLAS] = int(pred["y_final"])
+        require(predicted[GRASSPLAS] in (0, 1), "Nonbinary prediction")
         intersection, union = all(predicted.values()), any(predicted.values())
         predicted.update(intersection=intersection, union=union)
         actual = int(label["Plasmid"])
@@ -56,21 +57,21 @@ def experiment_rows(name):
     return rows(EXPERIMENTS / name / "results.csv")
 
 
-def validate(graphsage_exports=None, graphsage_evaluation=None):
-    graph = experiment_rows("graphsage")
+def validate(grassplas_exports=None, grassplas_evaluation=None):
+    grassplas = experiment_rows("grassplas")
     expected = {(str(i), str(c), m) for i in range(1, 6) for c in (0, 100, 1000)
-                for m in (*BASELINES, "GrassPlas", "intersection", "union")}
-    require(len(graph) == len(expected) and
-            {(r["run"], r["threshold"], r["tool"]) for r in graph} == expected,
-            "Incomplete GraphSAGE metrics")
+                for m in (*BASELINES, GRASSPLAS, "intersection", "union")}
+    require(len(grassplas) == len(expected) and
+            {(r["run"], r["threshold"], r["tool"]) for r in grassplas} == expected,
+            "Incomplete GraSSPlas metrics")
     observed = {}
-    if graphsage_evaluation is not None:
-        predictions = EXPERIMENTS / "graphsage/results"
-        observed = {str(i): recount(graphsage_evaluation, predictions / f"run_{i}.csv")
+    if grassplas_evaluation is not None:
+        predictions = EXPERIMENTS / "grassplas/results"
+        observed = {str(i): recount(grassplas_evaluation, predictions / f"run_{i}.csv")
                     for i in range(1, 6)}
-    elif graphsage_exports is not None:
-        observed = {str(i): recount(graphsage_exports / f"results_{i}") for i in range(1, 6)}
-    for r in graph:
+    elif grassplas_exports is not None:
+        observed = {str(i): recount(grassplas_exports / f"results_{i}") for i in range(1, 6)}
+    for r in grassplas:
         tp, fp, fn, tn = (int(r[k]) for k in ("TP", "FP", "FN", "TN"))
         require(tp + fp + fn + tn == (4440 if r["threshold"] == "1000" else 12176), str(r))
         for key, value in zip(("precision", "recall", "f1"), ratios(tp, fp, fn)):
@@ -191,10 +192,15 @@ if __name__ == "__main__":
     actions = parser.add_subparsers(dest="action", required=True)
     check = actions.add_parser("validate")
     inputs = check.add_mutually_exclusive_group()
-    inputs.add_argument("--graphsage-exports", type=Path,
+    inputs.add_argument("--grassplas-exports", type=Path,
                         help="Recount the original complete exports under results_1 through results_5")
-    inputs.add_argument("--graphsage-evaluation", type=Path,
+    inputs.add_argument("--grassplas-evaluation", type=Path,
                         help="Recount the included predictions using score and reference tables")
+    # Keep the former option names for existing command lines.
+    inputs.add_argument("--graphsage-exports", dest="grassplas_exports", type=Path,
+                        help=argparse.SUPPRESS)
+    inputs.add_argument("--graphsage-evaluation", dest="grassplas_evaluation", type=Path,
+                        help=argparse.SUPPRESS)
     summary = actions.add_parser("summary")
     summary.add_argument("experiment", choices=["weak-supervision", "robustness"])
     summary.add_argument("--by-seed", choices=["nominal_seed", "configured_seed"])
@@ -203,10 +209,10 @@ if __name__ == "__main__":
     score.add_argument("predictions", type=Path)
     args = parser.parse_args()
     if args.action == "validate":
-        validate(args.graphsage_exports, args.graphsage_evaluation)
-        print("Validated 120 GraphSAGE rows, 840 plASgraph2 fit rows and 46 comparison rows.")
-        if args.graphsage_exports or args.graphsage_evaluation:
-            print("Recomputed confusion counts for all 120 GraphSAGE rows from prediction inputs.")
+        validate(args.grassplas_exports, args.grassplas_evaluation)
+        print("Validated 120 GraSSPlas experiment rows, 840 plASgraph2 fit rows and 46 comparison rows.")
+        if args.grassplas_exports or args.grassplas_evaluation:
+            print("Recomputed confusion counts for all 120 GraSSPlas experiment rows from prediction inputs.")
     elif args.action == "summary":
         summarize(args.experiment, sys.stdout, args.by_seed)
     else:

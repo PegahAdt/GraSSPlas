@@ -25,7 +25,7 @@ The graph convolutions and TensorFlow/Spektral model are inherited from plASgrap
 
 The study uses 51 *E. coli* isolates and predicts for 11,984 contigs per fit. The nine model inputs are scores from the same five classifier families as Experiment A, using only the plasmid score from mlPlasmids. Training targets come from the condition tables. MOB-recon supplies plasmid matches and Pfam supplies evidence based on protein families. Reference labels used for evaluation are separate except where the true-label reference deliberately reuses them as training targets.
 
-The evaluator treats ambiguous reference contigs as positive for both plasmid and chromosome. It omits contigs with unknown reference status. This leaves 11,766 contigs at 100 bp and 4,348 at 1 kb. Among contigs shared with GraphSAGE, 116 called chromosome-only in this reference are plasmid-positive in the custom binary reference. The scores from the two model families use different evaluation definitions.
+The evaluator treats ambiguous reference contigs as positive for both plasmid and chromosome. It omits contigs with unknown reference status. This leaves 11,766 contigs at 100 bp and 4,348 at 1 kb. Among contigs shared with Experiment A, 116 called chromosome-only in this reference are plasmid-positive in the GraSSPlas binary reference. The scores from the two model families use different evaluation definitions. [GraSSPlas evaluation labels](../grassplas/README.md#dataset-and-training-labels)
 
 ## Experimental design
 
